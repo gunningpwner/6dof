@@ -1,61 +1,66 @@
 #include <iostream>
-#include <thread>
-#include <chrono>
+#include <vector>
 #include <iomanip>
-#include "Types.h"
-#include "dynamics/Integrator.h"
+#include "models/Motor.h"
 
-// --- The Physics Model ---
-// This function calculates F=ma. 
-// Later, this will call your Motor, Aero, and Environment classes.
-Derivatives rigid_body_dynamics(const State& state, float dt) {
-    Derivatives d;
-
-    // 1. Kinematics (Pos_dot = Vel)
-    d.pos_dot = state.velocity;
-
-    // 2. Forces (F = ma -> a = F/m)
-    // For "Hello World", we just have Gravity pointing Down (Z+)
-    Vector3 gravity(0, 0, 9.81f); 
-    
-    // Total Acceleration = Gravity + (Forces / Mass)
-    d.vel_dot = gravity; 
-
-    // 3. Rotational Dynamics (Euler's Eq: M = I*alpha + w x Iw)
-    // For "Hello World", no torques.
-    d.rate_dot = Vector3::Zero(); 
-
-    return d;
-}
+// Simple CSV Logger
+struct LogPoint {
+    float time;
+    float throttle;
+    float omega;
+    float omega_dot;
+    float current;
+};
 
 int main() {
-    std::cout << "[Sim] Initializing 6DOF Framework..." << std::endl;
+    // 1. Setup
+    Motor::Config motor_cfg;
+    motor_cfg.time_constant = 0.030f; // 30ms lag
+    motor_cfg.w_max = 2000.0f;        // 2000 rad/s top speed
+    Motor test_motor(motor_cfg);
 
-    State vehicle_state;
-    vehicle_state.position = Vector3(0, 0, -100); // Start 100m in the air (NED uses negative for Up)
+    float dt = 0.001f; // 1kHz simulation
+    float sim_time = 0.0f;
+    float battery_voltage = 16.0f; // 4S Lipo
 
-    float dt = 0.01f; // 100 Hz
-    float sim_duration = 5.0f;
+    std::vector<LogPoint> log;
 
-    std::cout << "t(s) \t Pos Z (m) \t Vel Z (m/s)" << std::endl;
-    std::cout << "-----------------------------------" << std::endl;
+    std::cout << "[Test] Running Motor Step Response..." << std::endl;
 
-    // --- The Simulation Loop ---
-    while (vehicle_state.time < sim_duration) {
+    // 2. Simulation Loop (1 Second)
+    while (sim_time < 1.0f) {
         
-        // 1. Step Physics
-        Integrator::step(vehicle_state, dt, rigid_body_dynamics);
+        // Generate a Step Input (0% -> 50% at 0.1s -> 0% at 0.6s)
+        float throttle = 0.0f;
+        if (sim_time > 0.1f && sim_time < 0.6f) {
+            throttle = 0.5f;
+        }
 
-        // 2. Output Data (Simulating Telemetry)
-        std::cout << std::fixed << std::setprecision(2) 
-                  << vehicle_state.time << " \t " 
-                  << vehicle_state.position.z() << " \t\t " 
-                  << vehicle_state.velocity.z() << std::endl;
+        // Update Physics
+        test_motor.update(dt, throttle, battery_voltage);
 
-        // 3. Real-time pacing (Optional, usually we run sim as fast as possible)
-        // std::this_thread::sleep_for(std::chrono::milliseconds((int)(dt * 1000)));
+        // Log Data
+        log.push_back({
+            sim_time, 
+            throttle, 
+            test_motor.getOmega(), 
+            test_motor.getOmegaDot(),
+            test_motor.getTelemetry().current
+        });
+
+        sim_time += dt;
     }
 
-    std::cout << "[Sim] Simulation Complete." << std::endl;
+    // 3. Output CSV to Console (Pipe this to a file!)
+    std::cout << "time,throttle,omega,omega_dot,current" << std::endl;
+    for (const auto& p : log) {
+        std::cout << std::fixed << std::setprecision(4)
+                  << p.time << "," 
+                  << p.throttle << "," 
+                  << p.omega << "," 
+                  << p.omega_dot << ","
+                  << p.current << std::endl;
+    }
+
     return 0;
 }

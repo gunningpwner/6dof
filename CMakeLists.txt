@@ -7,24 +7,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # --- Dependencies ---
 include(FetchContent)
 
-# 1. Fetch Eigen (Math Library)
-FetchContent_Declare(
-  Eigen3
-  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-  GIT_TAG        3.4.0
-)
-FetchContent_MakeAvailable(Eigen3)
+find_package(Eigen3 REQUIRED)
 
 # --- Include Directories ---
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
-    ${Eigen3_SOURCE_DIR} 
+    ${EIGEN3_INCLUDE_DIR} 
 )
 
 # --- Source Files ---
 # Recursively find all source files (Good for starting out, explicit lists better later)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
-
+message(STATUS "Source files found: ${SOURCES}")
 # --- Executable ---
 add_executable(sim_app ${SOURCES})
-target_link_libraries(sim_app Eigen3::Eigen)
