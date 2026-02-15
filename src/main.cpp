@@ -2,64 +2,50 @@
 #include <vector>
 #include <iomanip>
 #include "models/Motor.h"
+#include <Eigen/Dense>
+#include "KinematicAdjudicator.h"
+#include "Logger.h"
 
-// Simple CSV Logger
-struct LogPoint {
-    float time;
-    float throttle;
-    float omega;
-    float omega_dot;
-    float current;
-};
+using Vector4f = Eigen::Vector4f;
+using Vector3f = Eigen::Vector3f;
 
 int main() {
     // 1. Setup
     Motor::Config motor_cfg;
-    motor_cfg.time_constant = 0.030f; // 30ms lag
-    motor_cfg.w_max = 2000.0f;        // 2000 rad/s top speed
-    Motor test_motor(motor_cfg);
+    motor_cfg.time_constant = 0.025f; 
+    motor_cfg.w_max = 30000.0f;
+    motor_cfg.w_idle = 100.0f;
+    motor_cfg.nonlinearity = 0.5f;  
+    Motor sim_motor(motor_cfg);
 
-    float dt = 0.001f; // 1kHz simulation
+    float dt = 0.0005f; // 1kHz simulation
     float sim_time = 0.0f;
     float battery_voltage = 16.0f; // 4S Lipo
 
-    std::vector<LogPoint> log;
 
     std::cout << "[Test] Running Motor Step Response..." << std::endl;
+
+    KinematicAdjudicator autopilot;
 
     // 2. Simulation Loop (1 Second)
     while (sim_time < 1.0f) {
         
         // Generate a Step Input (0% -> 50% at 0.1s -> 0% at 0.6s)
-        float throttle = 0.0f;
-        if (sim_time > 0.1f && sim_time < 0.6f) {
-            throttle = 0.5f;
-        }
+        Vector4f omega_meas; 
+        omega_meas << sim_motor.getOmega(), 0, 0, 0; // Populate all 4
+        
+        Vector3f acc_meas(0, 0, -9.81); // Simplified for now
+        Vector3f gyro_meas(0, 0, 0);
 
-        // Update Physics
-        test_motor.update(dt, throttle, battery_voltage);
-
-        // Log Data
-        log.push_back({
-            sim_time, 
-            throttle, 
-            test_motor.getOmega(), 
-            test_motor.getOmegaDot(),
-            test_motor.getTelemetry().current
-        });
-
+        // C. Run the Autopilot (The Code Under Test)
+        // Note: You need to pass the timestamp!
+        uint64_t time_us = (uint64_t)(sim_time * 1e6);
+        Vector4f commands = autopilot.update(time_us, omega_meas, acc_meas, gyro_meas);
+        Logger::getInstance().log("omega_raw", omega_meas, time_us);
+        Logger::getInstance().log("command_raw", commands, time_us);
+        // D. Apply Autopilot Commands to Sim Physics
+        sim_motor.update(dt, commands(0), 16.0f);
         sim_time += dt;
-    }
-
-    // 3. Output CSV to Console (Pipe this to a file!)
-    std::cout << "time,throttle,omega,omega_dot,current" << std::endl;
-    for (const auto& p : log) {
-        std::cout << std::fixed << std::setprecision(4)
-                  << p.time << "," 
-                  << p.throttle << "," 
-                  << p.omega << "," 
-                  << p.omega_dot << ","
-                  << p.current << std::endl;
     }
 
     return 0;

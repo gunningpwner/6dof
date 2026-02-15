@@ -4,6 +4,7 @@ project(QuadSim6DOF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(QUADSIM_DIR ../quadsim)
 # --- Dependencies ---
 include(FetchContent)
 
@@ -12,12 +13,28 @@ find_package(Eigen3 REQUIRED)
 # --- Include Directories ---
 include_directories(
     ${CMAKE_SOURCE_DIR}/include
-    ${EIGEN3_INCLUDE_DIR} 
+    ${EIGEN3_INCLUDE_DIR}
+    ${QUADSIM_DIR}/lib/controllers/include
+    ${QUADSIM_DIR}/lib/filters/include
 )
+
+set(FLIGHT_SOURCES
+    ${QUADSIM_DIR}/lib/controllers/src/Estimator.cpp
+    ${QUADSIM_DIR}/lib/controllers/src/KinematicAdjudicator.cpp
+    ${QUADSIM_DIR}/lib/controllers/src/INDIController.cpp
+    ${QUADSIM_DIR}/lib/controllers/src/ExcitationGenerator.cpp
+    # Add INDIController.cpp etc.
+)
+
+
 
 # --- Source Files ---
 # Recursively find all source files (Good for starting out, explicit lists better later)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 message(STATUS "Source files found: ${SOURCES}")
 # --- Executable ---
-add_executable(sim_app ${SOURCES})
+add_executable(sim_app 
+            ${SOURCES}
+            ${FLIGHT_SOURCES}
+)
+target_compile_definitions(sim_app PRIVATE SIM)
