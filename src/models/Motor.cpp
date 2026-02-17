@@ -1,9 +1,6 @@
 #include "Motor.h"
 #include <iostream>
 
-Motor::Motor(const Config& cfg) : cfg_(cfg) {
-    state_omega_ = cfg_.w_idle;
-}
 
 void Motor::update(float dt, float throttle, float battery_voltage) {
     voltage_ = battery_voltage;
@@ -15,25 +12,11 @@ void Motor::update(float dt, float throttle, float battery_voltage) {
     
     // Clamp throttle 0.0 to 1.0
     float d = (throttle < 0.0f) ? 0.0f : (throttle > 1.0f) ? 1.0f : throttle;
-    
-    float mix = cfg_.nonlinearity * d + (1.0f - cfg_.nonlinearity) * std::sqrt(d);
-    float w_ref = cfg_.w_max * mix + cfg_.w_idle;
+    float omega_s = omega_max*(kappa*d + (1-kappa)*sqrt(d)) + omega_idle;
+    float alpha =std::exp(-dt/tau);
+    state_omega_ =omega_s*(1-alpha) + state_omega_*alpha;
+    state_omega_dot_ = (omega_s - state_omega_) / tau;
 
-    // 2. First Order Lag Dynamics
-    // Tau * w_dot = w_ref - w
-    // w_dot = (w_ref - w) / Tau
-    state_omega_dot_ = (w_ref - state_omega_) / cfg_.time_constant;
-
-    // 3. Integration
-    state_omega_ += state_omega_dot_ * dt;
-
-    // 4. Electrical Model (Simplified)
-    // Current = (Voltage - EMF) / R
-    // EMF = Omega / Kv_in_rads_per_sec
-    float kv_rads = cfg_.kv * 0.104719755f; // RPM to rad/s
-    float emf = state_omega_ / kv_rads;
-    current_draw_ = (battery_voltage - emf) / cfg_.resistance;
-    if(current_draw_ < 0) current_draw_ = 0.1f; // ESCs don't regen usually
 }
 
 float Motor::getThrust() const {
@@ -51,7 +34,7 @@ float Motor::getTorque() const {
 
 DShotTelemetry Motor::getTelemetry() const {
     DShotTelemetry t;
-    t.rpm = state_omega_ * 9.54929658f; // rad/s to RPM
+    t.rpm = state_omega_;
     t.voltage = voltage_;
     t.current = current_draw_;
     t.temperature = 45.0f + (current_draw_ * 0.5f); // Fake temp rise

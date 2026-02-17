@@ -5,21 +5,21 @@
 #include <Eigen/Dense>
 #include "KinematicAdjudicator.h"
 #include "Logger.h"
+#include "timing.h"
 
 using Vector4f = Eigen::Vector4f;
 using Vector3f = Eigen::Vector3f;
-
+uint64_t g_current_time;
+uint64_t getCurrentTimeUs()
+{
+    return g_current_time;
+}
 int main() {
     // 1. Setup
-    Motor::Config motor_cfg;
-    motor_cfg.time_constant = 0.025f; 
-    motor_cfg.w_max = 30000.0f;
-    motor_cfg.w_idle = 100.0f;
-    motor_cfg.nonlinearity = 0.5f;  
-    Motor sim_motor(motor_cfg);
+    Motor sim_motor;
 
     float dt = 0.0005f; // 1kHz simulation
-    float sim_time = 0.0f;
+    double sim_time = 0.0f;
     float battery_voltage = 16.0f; // 4S Lipo
 
 
@@ -39,10 +39,10 @@ int main() {
 
         // C. Run the Autopilot (The Code Under Test)
         // Note: You need to pass the timestamp!
-        uint64_t time_us = (uint64_t)(sim_time * 1e6);
-        Vector4f commands = autopilot.update(time_us, omega_meas, acc_meas, gyro_meas);
-        Logger::getInstance().log("omega_raw", omega_meas, time_us);
-        Logger::getInstance().log("command_raw", commands, time_us);
+        g_current_time = (uint64_t)(sim_time * 1e6);
+        Vector4f commands = autopilot.update(g_current_time, omega_meas, acc_meas, gyro_meas);
+        Logger::getInstance().log("omega_raw", omega_meas, g_current_time);
+        Logger::getInstance().log("command_raw", commands, g_current_time);
         // D. Apply Autopilot Commands to Sim Physics
         sim_motor.update(dt, commands(0), 16.0f);
         sim_time += dt;
