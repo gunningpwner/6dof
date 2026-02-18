@@ -1,7 +1,6 @@
+#pragma once
 #include <Eigen/Dense>
-#include "State.h"
-using Vec3 = Eigen::Vector3f;
-
+#include "core/State.h"
 class IDynamics {
 public:
     virtual ~IDynamics() = default;

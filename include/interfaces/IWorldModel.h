@@ -1,6 +1,6 @@
+#pragma once
 #include <Eigen/Dense>
-
-using Vec3 = Eigen::Vector3f;
+#include "core/State.h"
 
 class IWorldModel {
 public:

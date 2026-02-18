@@ -1,3 +1,7 @@
+#pragma once
+#include "core/State.h"
+
+// Base interface for sensors
 class ISensorBase {
 public:
     virtual ~ISensorBase() = default;
