@@ -20,7 +20,7 @@ public:
     void addSensor(std::shared_ptr<ISensorBase> s);
 
     void step(double dt);
-
+    std::shared_ptr<IDynamics> getDynamics() const;
     // Getters for GNC
     const State getTruth() const;
     std::vector<double> getMotorRPMs() const;

@@ -17,7 +17,7 @@ Quadcopter SimFactory::createPythonModelDrone(std::shared_ptr<IWorldModel> world
 
     // 3. Create Dynamics
     auto dynamics = std::make_shared<QuadDynamics>(world, mass, inertia);
-
+    
     // 4. Create Vehicle
     Quadcopter quad(dynamics);
 
@@ -38,14 +38,14 @@ Quadcopter SimFactory::createPythonModelDrone(std::shared_ptr<IWorldModel> world
     );
 
     // Add 4 Motors (Standard Betaflight X configuration)
-    // Motor 1: Rear Right (CCW) -> Position ( -x, -y )
-    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_proto), {-arm_len, -arm_len, 0});
+    // Motor 1: Rear Left (CW)    -> Position ( -x, +y ) 
+    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_proto), {-arm_len, arm_len, 0});
     
-    // Motor 2: Front Right (CW)  -> Position ( +x, -y )
-    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_proto), { arm_len, -arm_len, 0});
+    // Motor 2: Rear Right (CCW) -> Position ( -x, -y ) 
+    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_proto), { -arm_len, -arm_len, 0});
     
-    // Motor 3: Rear Left (CW)    -> Position ( -x, +y )
-    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_proto), {-arm_len,  arm_len, 0});
+    // Motor 3: Front Right (CW)  -> Position ( +x, -y )
+    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_proto), {arm_len,  -arm_len, 0});
     
     // Motor 4: Front Left (CCW)  -> Position ( +x, +y )
     quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_proto), { arm_len,  arm_len, 0});

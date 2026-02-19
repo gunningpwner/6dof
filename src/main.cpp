@@ -34,6 +34,9 @@ int main() {
     
     // B. The Vehicle
     Quadcopter quad= SimFactory::createPythonModelDrone(world);
+    State initState;
+    initState.omega_body = Vec3(.3,0,0);
+    quad.getDynamics()->setState(initState);
     // -------------------------------------------------
     // 2. SETUP THE CONTROLLER
     // -------------------------------------------------
@@ -66,11 +69,11 @@ int main() {
 
         Vector3f gyro_meas= truth.omega_body;
 
-        Logger::getInstance().log("omega_raw", omega_meas, g_current_time);
+        Logger::getInstance().log("Gyro", omega_meas, g_current_time);
         Vector4f commands = autopilot.update(g_current_time, omega_meas, acc_meas, gyro_meas);
         
         
-        Logger::getInstance().log("command_raw", commands, g_current_time);
+        Logger::getInstance().log("Control", commands, g_current_time);
 
         std::vector<double> cmd_vec = {commands(0), commands(1), commands(2), commands(3)};
         quad.setMotorCommands(cmd_vec);
