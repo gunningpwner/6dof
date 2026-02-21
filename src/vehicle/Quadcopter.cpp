@@ -69,6 +69,3 @@ void Quadcopter::setMotorCommands(const std::vector<double>& cmds) {
         motors_[i]->setCommand(cmds[i]);
     }
 }
-std::shared_ptr<IDynamics> Quadcopter::getDynamics() const {
-    return dynamics_;
-}

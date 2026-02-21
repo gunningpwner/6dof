@@ -25,30 +25,34 @@ Quadcopter SimFactory::createPythonModelDrone(std::shared_ptr<IWorldModel> world
     // Configuration: 5" Props, 2306 Motors, 2450KV, 4S Battery
     float arm_len = 0.15f; // 170mm arm length
 
-    // Create a prototype motor to clone
-    // Tau=0.05s, MaxRPM=35000, Idle=500, Kappa=1.0 (Linear), KT=Calculated, KQ=Calculated
-    // Note: thrust/torque coeffs are simplified approximations here
-    auto motor_proto = std::make_shared<FirstOrderMotor>(
-        0.025f,      // Time Constant (simulated lag)
-        30000.0f,   // Max RPM (approx 2450KV * 14.8V)
-        100.0f,     // Idle RPM
-        0.5f,       // Kappa (Linear response for simplicity)
-        1.3e-7,     // Thrust Coefficient (N/rpm^2)
-        1.0e-8      // Torque Coefficient (Nm/rpm^2)
+    // Motor Constants
+    float k_thrust = 1.3e-7; // N/rpm^2
+    float k_torque = 1.0e-8; // Nm/rpm^2
+
+    // CW Motor: Reaction torque is CCW (Negative Z in FRD)
+    auto motor_cw = std::make_shared<FirstOrderMotor>(
+        0.025f, 30000.0f, 100.0f, 0.5f, k_thrust, -k_torque
     );
 
-    // Add 4 Motors (Standard Betaflight X configuration)
-    // Motor 1: Rear Left (CW)    -> Position ( -x, +y ) 
-    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_proto), {-arm_len, arm_len, 0});
+    // CCW Motor: Reaction torque is CW (Positive Z in FRD)
+    auto motor_ccw = std::make_shared<FirstOrderMotor>(
+        0.025f, 30000.0f, 100.0f, 0.5f, k_thrust, k_torque
+    );
+
+    // Add 4 Motors (Standard Betaflight X configuration mapped to FRD)
+    // FRD: X=Front, Y=Right, Z=Down
     
-    // Motor 2: Rear Right (CCW) -> Position ( -x, -y ) 
-    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_proto), { -arm_len, -arm_len, 0});
+    // Motor 1: Rear Left (CW)    -> Position ( -x, -y ) 
+    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_cw), {-arm_len, -arm_len, 0});
     
-    // Motor 3: Front Right (CW)  -> Position ( +x, -y )
-    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_proto), {arm_len,  -arm_len, 0});
+    // Motor 2: Rear Right (CCW) -> Position ( -x, +y ) 
+    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_ccw), { -arm_len, arm_len, 0});
     
-    // Motor 4: Front Left (CCW)  -> Position ( +x, +y )
-    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_proto), { arm_len,  arm_len, 0});
+    // Motor 3: Front Right (CW)  -> Position ( +x, +y )
+    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_cw), {arm_len,  arm_len, 0});
+    
+    // Motor 4: Front Left (CCW)  -> Position ( +x, -y )
+    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_ccw), { arm_len,  -arm_len, 0});
 
     return quad;
 }

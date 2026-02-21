@@ -16,6 +16,8 @@ include_directories(
     ${EIGEN3_INCLUDE_DIR}
     ${QUADSIM_DIR}/lib/controllers/include
     ${QUADSIM_DIR}/lib/filters/include
+    ${QUADSIM_DIR}/lib/flight_core/include
+    ${QUADSIM_DIR}/lib/buffers/include
 )
 
 set(FLIGHT_SOURCES
@@ -23,6 +25,7 @@ set(FLIGHT_SOURCES
     ${QUADSIM_DIR}/lib/controllers/src/KinematicAdjudicator.cpp
     ${QUADSIM_DIR}/lib/controllers/src/INDIController.cpp
     ${QUADSIM_DIR}/lib/controllers/src/ExcitationGenerator.cpp
+    ${QUADSIM_DIR}/lib/controllers/src/GeometricController.cpp
     # Add INDIController.cpp etc.
 )
 
