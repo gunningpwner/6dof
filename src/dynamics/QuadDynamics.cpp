@@ -23,14 +23,15 @@ void QuadDynamics::step(double dt, const Vec3& forces_body, const Vec3& torques_
     
     // Get Gravity (NED Frame)
     Vec3 gravity_ned = world_->getGravity(state_.pos_ned);
-
+    
+    state_.accel_body = forces_body / mass_kg_;
     // Rotate forces to NED: F_ned = q * F_body
     // Eigen overloads operator* for Quaternion * Vector3
     Vec3 forces_ned = state_.att * forces_body;
 
     // F = ma -> a = F/m + g
     Vec3 acc_ned = (forces_ned / mass_kg_) + gravity_ned;
-
+    
     // ---------------------------------------------------------
     // 2. ROTATIONAL DYNAMICS (Euler's Eq)
     // ---------------------------------------------------------

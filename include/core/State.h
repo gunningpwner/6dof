@@ -15,6 +15,7 @@ struct State {
     Vec3 vel_ned;      // Velocity in North-East-Down (m/s)
     Quaternion att;    // Attitude (Body to NED)
     Vec3 omega_body;   // Angular Velocity in Body Frame (rad/s)
+    Vec3 accel_body;   // Acceleration in Body Frame (m/s^2)
     double timestamp;
 };
 

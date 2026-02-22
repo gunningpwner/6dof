@@ -57,7 +57,7 @@ int main() {
     // -------------------------------------------------
     // 3. SIMULATION LOOP
     // -------------------------------------------------
-    while (sim_time < 14.0f) {
+    while (sim_time < 10.0f) {
         g_current_time = (uint64_t)(sim_time * 1e6);
 
         std::vector<double> sim_rpms = quad.getMotorRPMs();
@@ -74,7 +74,7 @@ int main() {
         est->angular_vel = {truth.omega_body(0), truth.omega_body(1), truth.omega_body(2)};
         m_state_buffer.commit(est);
 
-        geometric_controller.run();
+        // geometric_controller.run();
 
         Logger::getInstance().log("Pos", truth.pos_ned, g_current_time);
         Logger::getInstance().log("Vel", truth.vel_ned, g_current_time);
@@ -83,13 +83,16 @@ int main() {
         Logger::getInstance().log("Quat",quat , g_current_time);
 
 
-        Vector3f acc_meas(0, 0, -9.81); 
+        Vector3f acc_meas = truth.accel_body; 
 
         Vector3f gyro_meas= truth.omega_body;
 
         Logger::getInstance().log("Gyro", gyro_meas, g_current_time);
-        Logger::getInstance().log("acc_cmd",geometric_controller.ang_acc_cmd , g_current_time);
-        autopilot.setCommand(geometric_controller.ang_acc_cmd);
+        // Vector3f ang_acc_cmd = geometric_controller.ang_acc_cmd;
+        Vector3f ang_acc_cmd  = -gyro_meas*10.0f;
+        Logger::getInstance().log("acc_cmd",ang_acc_cmd , g_current_time);
+        
+        autopilot.setCommand(ang_acc_cmd);
 
 
         Vector4f commands = autopilot.update(g_current_time, omega_meas, acc_meas, gyro_meas);

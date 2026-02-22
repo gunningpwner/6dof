@@ -42,14 +42,14 @@ Quadcopter SimFactory::createPythonModelDrone(std::shared_ptr<IWorldModel> world
     // Add 4 Motors (Standard Betaflight X configuration mapped to FRD)
     // FRD: X=Front, Y=Right, Z=Down
     
-    // Motor 1: Rear Left (CW)    -> Position ( -x, -y ) 
-    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_cw), {-arm_len, -arm_len, 0});
+    // Motor 1: Front Right (CW)  -> Position ( +x, +y )
+    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_cw), {arm_len, arm_len, 0});
     
     // Motor 2: Rear Right (CCW) -> Position ( -x, +y ) 
     quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_ccw), { -arm_len, arm_len, 0});
     
-    // Motor 3: Front Right (CW)  -> Position ( +x, +y )
-    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_cw), {arm_len,  arm_len, 0});
+    // Motor 3:  Rear Left (CW)    -> Position ( -x, -y ) 
+    quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_cw), {-arm_len,  -arm_len, 0});
     
     // Motor 4: Front Left (CCW)  -> Position ( +x, -y )
     quad.addMotor(std::make_shared<FirstOrderMotor>(*motor_ccw), { arm_len,  -arm_len, 0});
