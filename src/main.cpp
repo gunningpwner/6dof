@@ -66,7 +66,8 @@ int main(int argc, char** argv) {
     // quat.normalize(); 
 
     // geometric_controller.rot_desired = quat.toRotationMatrix();
-    geometric_controller.vel_cmd = Vec3(0.0f, 0.0f, 0.0f);
+    geometric_controller.vel_desired = Vec3(0.0f, 0.0f, 0.0f);
+    geometric_controller.pos_desired = Vec3(0.0f, 0.0f, 0.0f);
 
 
     // -------------------------------------------------
