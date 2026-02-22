@@ -40,4 +40,5 @@ add_executable(sim_app
             ${SOURCES}
             ${FLIGHT_SOURCES}
 )
+target_compile_options(sim_app PRIVATE -O2)
 target_compile_definitions(sim_app PRIVATE SIM)

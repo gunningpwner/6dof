@@ -2,6 +2,7 @@
 #include <vector>
 #include <memory>
 #include <Eigen/Dense>
+#include <string>
 
 // New Framework Includes
 #include "vehicle/Quadcopter.h"
@@ -23,7 +24,14 @@ uint64_t getCurrentTimeUs()
 {
     return g_current_time;
 }
-int main() {
+int main(int argc, char** argv) {
+    double max_time = 10.0;
+    for (int i = 1; i < argc; ++i) {
+        if (std::string(argv[i]) == "-t" && i + 1 < argc) {
+            max_time = std::stod(argv[++i]);
+        }
+    }
+
     // -------------------------------------------------
     // 1. SETUP THE SIMULATION FRAMEWORK
     // -------------------------------------------------
@@ -48,7 +56,8 @@ int main() {
     GeometricController geometric_controller(m_state_consumer);
     float dt = 0.0005f; // 2kHz simulation
     double sim_time = 0.0f;
-    Eigen::Quaternionf quat( 0.185f, -0.006f,  0.681f,  0.708f);
+    // Eigen::Quaternionf quat( 0.185f, -0.006f,  0.681f,  0.708f);
+    Eigen::Quaternionf quat( 1.0f, 0.0f,  0.0f,  0.0f);
     quat.normalize(); 
 
     geometric_controller.rot_desired = quat.toRotationMatrix();
@@ -57,7 +66,7 @@ int main() {
     // -------------------------------------------------
     // 3. SIMULATION LOOP
     // -------------------------------------------------
-    while (sim_time < 10.0f) {
+    while (sim_time < max_time) {
         g_current_time = (uint64_t)(sim_time * 1e6);
 
         std::vector<double> sim_rpms = quad.getMotorRPMs();
@@ -68,13 +77,13 @@ int main() {
         State truth = quad.getTruth();
 
         StateEstimate* est =m_state_buffer.claim();
-        est->orientation = {truth.att.w(), truth.att.x(), truth.att.y(), truth.att.z()};
+        est->orientation = {truth.att.x(), truth.att.y(), truth.att.z(),truth.att.w()};
         est->position_enu = {0.0f, 0.0f, 0.0f};
         est->velocity_enu = { 0.0f, 0.0f, 0.0f};
         est->angular_vel = {truth.omega_body(0), truth.omega_body(1), truth.omega_body(2)};
         m_state_buffer.commit(est);
 
-        // geometric_controller.run();
+        geometric_controller.run();
 
         Logger::getInstance().log("Pos", truth.pos_ned, g_current_time);
         Logger::getInstance().log("Vel", truth.vel_ned, g_current_time);
@@ -88,8 +97,8 @@ int main() {
         Vector3f gyro_meas= truth.omega_body;
 
         Logger::getInstance().log("Gyro", gyro_meas, g_current_time);
-        // Vector3f ang_acc_cmd = geometric_controller.ang_acc_cmd;
-        Vector3f ang_acc_cmd  = -gyro_meas*10.0f;
+        Vector3f ang_acc_cmd = geometric_controller.ang_acc_cmd;
+        // Vector3f ang_acc_cmd  = -gyro_meas*10.0f;
         Logger::getInstance().log("acc_cmd",ang_acc_cmd , g_current_time);
         
         autopilot.setCommand(ang_acc_cmd);
