@@ -18,11 +18,16 @@ public:
 
     void addMotor(std::shared_ptr<IMotor> m, Vec3 pos);
     void addSensor(std::shared_ptr<ISensorBase> s);
-
-    void step(double dt);
-    std::shared_ptr<IDynamics> getDynamics() const;
+    void propagate_to(uint64_t target_time);
+    
+    std::shared_ptr<IDynamics> getDynamics() const { return dynamics_; }
     // Getters for GNC
-    const State getTruth() const;
+    const SimState getTruth() const;
     std::vector<double> getMotorRPMs() const;
     void setMotorCommands(const std::vector<double>& cmds);
+
+private:
+    void step(double dt);
+    
+    uint64_t last_update_time = 0;
 };

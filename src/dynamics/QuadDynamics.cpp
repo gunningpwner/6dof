@@ -82,10 +82,14 @@ void QuadDynamics::integrate(double dt, const Vec3& acc_ned, const Vec3& alpha_b
     state_.timestamp += dt;
 }
 
-State QuadDynamics::getState() const {
+SimState QuadDynamics::getState() const {
     return state_;
 }
 
-void QuadDynamics::setState(const State& s) {
+void QuadDynamics::setState(const SimState& s) {
     state_ = s;
+}
+
+std::shared_ptr<IWorldModel> QuadDynamics::getWorld() const {
+    return world_;
 }

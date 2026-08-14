@@ -12,5 +12,5 @@ public:
 template <typename DataT>
 class ISensor : public ISensorBase {
 public:
-    virtual DataT read(const State& truth) = 0;
+    virtual DataT read(const SimState& truth) = 0;
 };

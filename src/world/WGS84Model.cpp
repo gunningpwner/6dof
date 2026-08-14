@@ -1,57 +1,47 @@
 #include "world/WGS84Model.h"
 #include <cmath>
+#include "WMM.h"
 
-// WGS84 Ellipsoid Constants
-const double a = 6378137.0; // Major axis
-const double f = 1.0 / 298.257223563; // Flattening
-const double e2 = 2*f - f*f; // Eccentricity squared
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
+WGS84Model::WGS84Model(double lat0, double lon0) 
+    : origin_{lat0, lon0, 0.0} {}
+
+// Simple constant gravity for now
 Vec3 WGS84Model::getGravity(const Vec3& pos_ned) const {
-    // Implementation: Somigliana formula (Simplified)
-    // Gravity varies with Latitude (stronger at poles)
-    double sinLat = std::sin(origin_.lat_rad); // Approximation using origin lat
-    double g = 9.780327 * (1 + 0.0053024 * sinLat*sinLat - 0.0000058 * std::sin(2*origin_.lat_rad)*std::sin(2*origin_.lat_rad));
-    
-    // Free Air Correction (Gravity decreases with altitude)
-    // approx -3.086e-6 * altitude
-    return Vec3(0, 0, g - (3.086e-6 * -pos_ned.z())); 
+    (void)pos_ned;
+    return Vec3(0, 0, 9.81f);
 }
 
+// Simple linear projection, same as FlatEarthModel
 GeodeticPos WGS84Model::nedToLLA(const Vec3& ned) const {
-    // Implementation: Local Tangent Plane (LTP) approximation
-    // Suitable for short to medium ranges from origin
     GeodeticPos pos;
-
-    // Radius of curvature in the prime vertical
-    double sinLat = std::sin(origin_.lat_rad);
-    double N = a / std::sqrt(1.0 - e2 * sinLat * sinLat);
-
-    // Radius of curvature in the meridian
-    double M = a * (1.0 - e2) / std::pow(1.0 - e2 * sinLat * sinLat, 1.5);
-
-    pos.lat_rad = origin_.lat_rad + (ned.x() / M);
-    pos.lon_rad = origin_.lon_rad + (ned.y() / (N * std::cos(origin_.lat_rad)));
+    pos.lat_rad = origin_.lat_rad + (ned.x() / R_EARTH);
+    pos.lon_rad = origin_.lon_rad + (ned.y() / (R_EARTH * std::cos(origin_.lat_rad)));
     pos.alt_m = origin_.alt_m - ned.z();
-
     return pos;
 }
 
+// Simple inverse projection, same as FlatEarthModel
 Vec3 WGS84Model::llaToNED(const GeodeticPos& lla) const {
-    // Implementation: Inverse Local Tangent Plane approximation
-    double sinLat = std::sin(origin_.lat_rad);
-    double N = a / std::sqrt(1.0 - e2 * sinLat * sinLat);
-    double M = a * (1.0 - e2) / std::pow(1.0 - e2 * sinLat * sinLat, 1.5);
-
     Vec3 ned;
-    ned.x() = (lla.lat_rad - origin_.lat_rad) * M;
-    ned.y() = (lla.lon_rad - origin_.lon_rad) * (N * std::cos(origin_.lat_rad));
-    ned.z() = origin_.alt_m - lla.alt_m;
-
+    ned.x() = static_cast<float>((lla.lat_rad - origin_.lat_rad) * R_EARTH);
+    ned.y() = static_cast<float>((lla.lon_rad - origin_.lon_rad) * (R_EARTH * std::cos(origin_.lat_rad)));
+    ned.z() = static_cast<float>(origin_.alt_m - lla.alt_m);
     return ned;
 }
 
-WGS84Model::WGS84Model(double lat0, double lon0) {
-    origin_.lat_rad = lat0;
-    origin_.lon_rad = lon0;
-    origin_.alt_m = 0.0;
+Vec3 WGS84Model::getMagneticField(const Vec3& pos_ned) const {
+    GeodeticPos current_pos = nedToLLA(pos_ned);
+
+    float inc, dec;
+    calcIncAndDec(current_pos.lat_rad * 180.0 / M_PI, 
+                  current_pos.lon_rad * 180.0 / M_PI, 
+                  inc, dec);
+
+    return Vec3(cosf(inc) * cosf(dec),      // North
+                cosf(inc) * sinf(dec),      // East
+                sinf(inc)).normalized();    // Down
 }

@@ -8,7 +8,7 @@
 class QuadDynamics : public IDynamics {
 private:
     std::shared_ptr<IWorldModel> world_;
-    State state_;
+    SimState state_;
 
     // Physical Properties
     float mass_kg_;
@@ -24,6 +24,8 @@ public:
 
     void step(double dt, const Vec3& forces_body, const Vec3& torques_body) override;
 
-    State getState() const override;
-    void setState(const State& s) override;
+    SimState getState() const override;
+    void setState(const SimState& s) override;
+
+    std::shared_ptr<IWorldModel> getWorld() const override;
 };

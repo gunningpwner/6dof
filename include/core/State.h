@@ -10,7 +10,7 @@ using Vec3 = Eigen::Vector3f;
 using Quaternion = Eigen::Quaternionf;
 
 // The "Truth" State
-struct State {
+struct SimState {
     Vec3 pos_ned;      // Position in North-East-Down (m)
     Vec3 vel_ned;      // Velocity in North-East-Down (m/s)
     Quaternion att;    // Attitude (Body to NED)

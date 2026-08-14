@@ -8,7 +8,7 @@ static std::normal_distribution<double> distribution(0.0, 1.0);
 GPSSensor::GPSSensor(std::shared_ptr<IWorldModel> w, double h, double v) 
     : world_(w), noise_sigma_h_(h), noise_sigma_v_(v) {}
 
-GPSData GPSSensor::read(const State& truth) {
+GPSData GPSSensor::read(const SimState& truth) {
     // 1. Get Ideal Measurement
     GeodeticPos perfect_pos = world_->nedToLLA(truth.pos_ned);
 

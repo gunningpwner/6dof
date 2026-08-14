@@ -26,3 +26,9 @@ Vec3 FlatEarthModel::llaToNED(const GeodeticPos& lla) const {
     ned.z() = origin_.alt_m - lla.alt_m;
     return ned;
 }
+
+Vec3 FlatEarthModel::getMagneticField(const Vec3& pos_ned) const {
+    // Return a constant magnetic field vector for simplicity.
+    (void)pos_ned; // Unused for flat earth with constant field
+    return Vec3(0.5f, 0.1f, 0.85f).normalized();
+}

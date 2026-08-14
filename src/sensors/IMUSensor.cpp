@@ -8,7 +8,7 @@ static std::normal_distribution<float> dist(0.0f, 1.0f);
 IMUSensor::IMUSensor(float accel_noise, float gyro_noise) 
     : accel_noise_std_(accel_noise), gyro_noise_std_(gyro_noise) {}
 
-IMUData IMUSensor::read(const State& truth) {
+IMUData IMUSensor::read(const SimState& truth) {
     IMUData data;
     
     // 1. Base Truth

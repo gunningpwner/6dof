@@ -17,5 +17,5 @@ class GPSSensor : public ISensor<GPSData> {
 public:
     GPSSensor(std::shared_ptr<IWorldModel> w, double sigma_h = 2.0, double sigma_v = 5.0);
     
-    GPSData read(const State& truth) override;
+    GPSData read(const SimState& truth) override;
 };

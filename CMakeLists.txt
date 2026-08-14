@@ -18,6 +18,7 @@ include_directories(
     ${QUADSIM_DIR}/lib/filters/include
     ${QUADSIM_DIR}/lib/flight_core/include
     ${QUADSIM_DIR}/lib/buffers/include
+    ${QUADSIM_DIR}/lib/world_model/include
 )
 
 set(FLIGHT_SOURCES
@@ -26,6 +27,8 @@ set(FLIGHT_SOURCES
     ${QUADSIM_DIR}/lib/controllers/src/INDIController.cpp
     ${QUADSIM_DIR}/lib/controllers/src/ExcitationGenerator.cpp
     ${QUADSIM_DIR}/lib/controllers/src/GeometricController.cpp
+    ${QUADSIM_DIR}/lib/flight_core/src/MCE.cpp
+    ${QUADSIM_DIR}/lib/filters/src/ESKF.cpp
     # Add INDIController.cpp etc.
 )
 

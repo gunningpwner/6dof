@@ -14,4 +14,5 @@ public:
     Vec3 getGravity(const Vec3& pos_ned) const override;
     GeodeticPos nedToLLA(const Vec3& pos_ned) const override;
     Vec3 llaToNED(const GeodeticPos& lla) const override;
+    Vec3 getMagneticField(const Vec3& pos_ned) const override;
 };

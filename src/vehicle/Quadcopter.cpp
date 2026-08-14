@@ -1,5 +1,5 @@
 #include "vehicle/Quadcopter.h"
-
+#include "core/Scheduler.h"
 Quadcopter::Quadcopter(std::shared_ptr<IDynamics> dyn) : dynamics_(dyn) {}
 
 void Quadcopter::addMotor(std::shared_ptr<IMotor> m, Vec3 pos) {
@@ -9,6 +9,24 @@ void Quadcopter::addMotor(std::shared_ptr<IMotor> m, Vec3 pos) {
 
 void Quadcopter::addSensor(std::shared_ptr<ISensorBase> s) {
     sensors_.push_back(s);
+}
+
+void Quadcopter::propagate_to(uint64_t target_time) {
+    const Time_us max_dt_us = 10000; 
+
+    while (last_update_time < target_time) {
+        // Take the maximum allowed step, or whatever remainder is left
+        Time_us current_dt_us = std::min(max_dt_us, target_time - last_update_time);
+        
+        // Convert to floating-point seconds for the physics integration
+        double dt_sec = current_dt_us / 1000000.0;
+        
+        // Step the actual equations of motion
+        step(dt_sec);
+        
+        // Advance the local physics clock by the exact integer microsecond amount
+        last_update_time += current_dt_us;
+    }
 }
 
 void Quadcopter::step(double dt) {
@@ -38,12 +56,8 @@ void Quadcopter::step(double dt) {
     // 2. Step Dynamics
     dynamics_->step(dt, force_accum, torque_accum);
 
-    // 3. Update Sensors (if needed)
-    for(auto& s : sensors_) {
-        s->update(dt);
-    }
 }
-const State Quadcopter::getTruth() const {
+const SimState Quadcopter::getTruth() const {
     // Delegate to the dynamics engine
     return dynamics_->getState();
 }
