@@ -16,6 +16,7 @@ struct SimState {
     Quaternion att;    // Attitude (Body to NED)
     Vec3 omega_body;   // Angular Velocity in Body Frame (rad/s)
     Vec3 accel_body;   // Acceleration in Body Frame (m/s^2)
+    Vec3 ang_acc;      // Angular Acceleration (rad/s^2)
     double timestamp;
 };
 

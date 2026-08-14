@@ -15,6 +15,7 @@
 #include "driver_emulators/bmi270.h"
 #include "driver_emulators/GPSEmulator.h"
 #include "driver_emulators/MagEmulator.h"
+#include "TruthLogger.h"
 
 BMI270* g_imu_ptr;
 DShot* g_dshot_ptr;
@@ -49,6 +50,10 @@ int main(int argc, char** argv) {
     
     // B. The Vehicle
     Quadcopter quad= SimFactory::createPythonModelDrone(world);
+
+    // C. Truth Logger
+    TruthLogger truth_logger(quad, scheduler, 10000); // Log at 100Hz (10000 us)
+
     // -------------------------------------------------
     // 2. SETUP THE CONTROLLER
     // -------------------------------------------------

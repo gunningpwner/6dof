@@ -47,6 +47,7 @@ void QuadDynamics::step(double dt, const Vec3& forces_body, const Vec3& torques_
     // Solve for alpha: alpha = I_inv * (Torque - Gyro)
     Vec3 torque_residual = torques_body - gyro_term;
     Vec3 alpha_body = inertia_inv_diag_.cwiseProduct(torque_residual);
+    state_.ang_acc = alpha_body;
 
     // ---------------------------------------------------------
     // 3. INTEGRATION
